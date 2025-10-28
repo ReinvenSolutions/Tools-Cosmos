@@ -79,7 +79,7 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <header className="max-w-2xl mx-auto text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-            Calculadora COSMOS
+            Calculadora de Días Cosmos
           </h1>
           <div className="text-2xl md:text-3xl font-bold text-primary mb-4">
             (25 Días)
