@@ -24,7 +24,7 @@ export class DbStorage implements IStorage {
     const record = result[0];
     return {
       startDate: record.startDate,
-      events: record.events as Record<string, string>,
+      days: record.days as Record<string, any>,
     };
   }
 
@@ -35,13 +35,13 @@ export class DbStorage implements IStorage {
       .values({
         sessionId: userId,
         startDate: itinerary.startDate,
-        events: itinerary.events,
+        days: itinerary.days,
       })
       .onConflictDoUpdate({
         target: itineraries.sessionId,
         set: {
           startDate: itinerary.startDate,
-          events: itinerary.events,
+          days: itinerary.days,
           updatedAt: new Date(),
         },
       });

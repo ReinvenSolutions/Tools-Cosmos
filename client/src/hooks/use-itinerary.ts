@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Itinerary, EventWithCategory, EventCategory } from "@shared/schema";
+import type { Itinerary, DayDetails, EventCategory } from "@shared/schema";
 
 const ITINERARY_QUERY_KEY = "/api/itinerary";
 
@@ -35,15 +35,15 @@ export function useItinerary() {
   });
 
   // Get current state with fallback to today's date
-  const getCurrentState = (): { startDate: string | null; events: Record<string, EventWithCategory> } => {
+  const getCurrentState = (): { startDate: string | null; days: Record<string, DayDetails> } => {
     if (data) {
-      return { startDate: data.startDate, events: data.events };
+      return { startDate: data.startDate, days: data.days || {} };
     }
     
     // Default to today's date when no data
     const today = new Date();
     const todayISO = today.toISOString().split("T")[0];
-    return { startDate: todayISO, events: {} };
+    return { startDate: todayISO, days: {} };
   };
 
   const currentState = getCurrentState();
@@ -52,7 +52,7 @@ export function useItinerary() {
     const newStartDate = date ? date.toISOString().split("T")[0] : null;
     const newItinerary: Itinerary = {
       startDate: newStartDate || "",
-      events: currentState.events,
+      days: currentState.days,
     };
     
     if (newStartDate) {
@@ -61,23 +61,45 @@ export function useItinerary() {
   };
 
   const setEvent = (dateKey: string, eventText: string, category?: EventCategory) => {
+    const existingDay = currentState.days[dateKey] || {};
     const newItinerary: Itinerary = {
       startDate: currentState.startDate || "",
-      events: {
-        ...currentState.events,
-        [dateKey]: { text: eventText, category },
+      days: {
+        ...currentState.days,
+        [dateKey]: {
+          ...existingDay,
+          event: { text: eventText, category },
+        },
+      },
+    };
+    saveMutation.mutate(newItinerary);
+  };
+
+  const setDayDetails = (dateKey: string, details: Partial<DayDetails>) => {
+    const existingDay = currentState.days[dateKey] || {};
+    const newItinerary: Itinerary = {
+      startDate: currentState.startDate || "",
+      days: {
+        ...currentState.days,
+        [dateKey]: {
+          ...existingDay,
+          ...details,
+        },
       },
     };
     saveMutation.mutate(newItinerary);
   };
 
   const deleteEvent = (dateKey: string) => {
-    const newEvents = { ...currentState.events };
-    delete newEvents[dateKey];
+    const existingDay = currentState.days[dateKey] || {};
+    const { event, ...rest } = existingDay;
     
     const newItinerary: Itinerary = {
       startDate: currentState.startDate || "",
-      events: newEvents,
+      days: {
+        ...currentState.days,
+        [dateKey]: rest,
+      },
     };
     saveMutation.mutate(newItinerary);
   };
@@ -86,14 +108,21 @@ export function useItinerary() {
     deleteMutation.mutate();
   };
 
+  // Calculate total budget
+  const totalBudget = Object.values(currentState.days || {}).reduce((sum, day) => {
+    return sum + (day?.budget || 0);
+  }, 0);
+
   return {
     startDate: currentState.startDate,
-    events: currentState.events,
+    days: currentState.days,
+    totalBudget,
     isLoading,
     error,
     isSaving: saveMutation.isPending,
     setStartDate,
     setEvent,
+    setDayDetails,
     deleteEvent,
     clearItinerary,
   };

@@ -12,12 +12,19 @@ export interface EventWithCategory {
   category?: EventCategory;
 }
 
+// Day details with notes and budget
+export interface DayDetails {
+  event?: EventWithCategory;
+  notes?: string;
+  budget?: number;
+}
+
 // Drizzle table definition for itineraries
 export const itineraries = pgTable("itineraries", {
   id: serial("id").primaryKey(),
   sessionId: varchar("session_id", { length: 255 }).notNull().unique(),
   startDate: varchar("start_date", { length: 10 }).notNull(), // YYYY-MM-DD
-  events: json("events").$type<Record<string, EventWithCategory>>().notNull().default({}),
+  days: json("days").$type<Record<string, DayDetails>>().notNull().default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -34,9 +41,15 @@ export const eventWithCategorySchema = z.object({
   category: z.enum(eventCategories).optional(),
 });
 
+export const dayDetailsSchema = z.object({
+  event: eventWithCategorySchema.optional(),
+  notes: z.string().optional(),
+  budget: z.number().nonnegative().optional(),
+});
+
 export const itinerarySchema = z.object({
   startDate: z.string(),
-  events: z.record(z.string(), eventWithCategorySchema),
+  days: z.record(z.string(), dayDetailsSchema),
 });
 
 // Types

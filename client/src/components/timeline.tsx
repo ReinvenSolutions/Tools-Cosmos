@@ -1,15 +1,16 @@
 import { DayItem } from "./day-item";
 import type { DayInfo } from "@/lib/itinerary-utils";
-import type { EventWithCategory, EventCategory } from "@shared/schema";
+import type { DayDetails, EventCategory } from "@shared/schema";
 
 interface TimelineProps {
   days: DayInfo[];
-  events: Record<string, EventWithCategory>;
+  dayDetails: Record<string, DayDetails>;
   onSaveEvent: (dateKey: string, eventText: string, category?: EventCategory) => void;
+  onUpdateDetails: (dateKey: string, details: Partial<DayDetails>) => void;
   onDeleteEvent: (dateKey: string) => void;
 }
 
-export function Timeline({ days, events, onSaveEvent, onDeleteEvent }: TimelineProps) {
+export function Timeline({ days, dayDetails, onSaveEvent, onUpdateDetails, onDeleteEvent }: TimelineProps) {
   return (
     <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
       <div className="sticky top-0 bg-card/95 backdrop-blur-sm z-10 border-b border-border">
@@ -25,8 +26,9 @@ export function Timeline({ days, events, onSaveEvent, onDeleteEvent }: TimelineP
           <DayItem
             key={dayInfo.dateKey}
             dayInfo={dayInfo}
-            event={events[dayInfo.dateKey]}
+            dayDetails={dayDetails[dayInfo.dateKey]}
             onSaveEvent={onSaveEvent}
+            onUpdateDetails={onUpdateDetails}
             onDeleteEvent={onDeleteEvent}
           />
         ))}

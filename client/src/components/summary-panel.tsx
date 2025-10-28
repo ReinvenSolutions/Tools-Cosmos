@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SummaryPanelProps {
   hasStartDate: boolean;
+  totalBudget?: number;
 }
 
-export function SummaryPanel({ hasStartDate }: SummaryPanelProps) {
+export function SummaryPanel({ hasStartDate, totalBudget = 0 }: SummaryPanelProps) {
   return (
     <Card className="mt-8">
       <CardHeader className="pb-4">
@@ -37,6 +38,20 @@ export function SummaryPanel({ hasStartDate }: SummaryPanelProps) {
             </p>
           </Card>
         </div>
+
+        {totalBudget > 0 && (
+          <Card className="mt-4 p-3 text-center border-green-500/20 bg-green-500/5">
+            <p
+              className="text-2xl font-extrabold text-green-600 dark:text-green-400"
+              data-testid="text-budget-total"
+            >
+              ${totalBudget.toFixed(2)}
+            </p>
+            <p className="text-xs font-medium text-muted-foreground mt-1">
+              Presupuesto Total
+            </p>
+          </Card>
+        )}
 
         <p
           className="text-sm font-medium text-muted-foreground mt-4 text-center"

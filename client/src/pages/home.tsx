@@ -13,17 +13,19 @@ import { RotateCcw, Loader2 } from "lucide-react";
 export default function Home() {
   const { 
     startDate, 
-    events, 
+    days, 
+    totalBudget,
     isLoading, 
     isSaving,
     setStartDate, 
     setEvent, 
+    setDayDetails,
     deleteEvent, 
     clearItinerary 
   } = useItinerary();
 
   const startDateObj = startDate ? new Date(startDate + "T00:00:00") : null;
-  const days = startDateObj ? generateItineraryDays(startDateObj) : [];
+  const itineraryDays = startDateObj ? generateItineraryDays(startDateObj) : [];
 
   const handleDateChange = (date: Date) => {
     setStartDate(date);
@@ -117,16 +119,17 @@ export default function Home() {
                 Limpiar y Reiniciar Itinerario
               </Button>
 
-              <SummaryPanel hasStartDate={!!startDateObj} />
+              <SummaryPanel hasStartDate={!!startDateObj} totalBudget={totalBudget} />
             </Card>
           </div>
 
           <div>
-            {days.length > 0 ? (
+            {itineraryDays.length > 0 ? (
               <Timeline
-                days={days}
-                events={events}
+                days={itineraryDays}
+                dayDetails={days}
                 onSaveEvent={setEvent}
+                onUpdateDetails={setDayDetails}
                 onDeleteEvent={deleteEvent}
               />
             ) : (
