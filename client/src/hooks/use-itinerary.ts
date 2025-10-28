@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Itinerary } from "@shared/schema";
+import type { Itinerary, EventWithCategory, EventCategory } from "@shared/schema";
 
 const ITINERARY_QUERY_KEY = "/api/itinerary";
 
@@ -35,7 +35,7 @@ export function useItinerary() {
   });
 
   // Get current state with fallback to today's date
-  const getCurrentState = (): { startDate: string | null; events: Record<string, string> } => {
+  const getCurrentState = (): { startDate: string | null; events: Record<string, EventWithCategory> } => {
     if (data) {
       return { startDate: data.startDate, events: data.events };
     }
@@ -60,12 +60,12 @@ export function useItinerary() {
     }
   };
 
-  const setEvent = (dateKey: string, eventText: string) => {
+  const setEvent = (dateKey: string, eventText: string, category?: EventCategory) => {
     const newItinerary: Itinerary = {
       startDate: currentState.startDate || "",
       events: {
         ...currentState.events,
-        [dateKey]: eventText,
+        [dateKey]: { text: eventText, category },
       },
     };
     saveMutation.mutate(newItinerary);

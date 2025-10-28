@@ -1,10 +1,11 @@
 import { DayItem } from "./day-item";
 import type { DayInfo } from "@/lib/itinerary-utils";
+import type { EventWithCategory, EventCategory } from "@shared/schema";
 
 interface TimelineProps {
   days: DayInfo[];
-  events: Record<string, string>;
-  onSaveEvent: (dateKey: string, eventText: string) => void;
+  events: Record<string, EventWithCategory>;
+  onSaveEvent: (dateKey: string, eventText: string, category?: EventCategory) => void;
   onDeleteEvent: (dateKey: string) => void;
 }
 

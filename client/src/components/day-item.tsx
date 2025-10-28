@@ -3,24 +3,34 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Edit, Save, X } from "lucide-react";
 import type { DayInfo } from "@/lib/itinerary-utils";
+import type { EventCategory, EventWithCategory } from "@shared/schema";
+import { categoryMetadata } from "@shared/schema";
 
 interface DayItemProps {
   dayInfo: DayInfo;
-  event: string | undefined;
-  onSaveEvent: (dateKey: string, eventText: string) => void;
+  event: EventWithCategory | undefined;
+  onSaveEvent: (dateKey: string, eventText: string, category?: EventCategory) => void;
   onDeleteEvent: (dateKey: string) => void;
 }
 
 export function DayItem({ dayInfo, event, onSaveEvent, onDeleteEvent }: DayItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [eventText, setEventText] = useState(event || "");
+  const [eventText, setEventText] = useState(event?.text || "");
+  const [category, setCategory] = useState<EventCategory | undefined>(event?.category);
 
   const handleSave = () => {
     const trimmedText = eventText.trim();
     if (trimmedText) {
-      onSaveEvent(dayInfo.dateKey, trimmedText);
+      onSaveEvent(dayInfo.dateKey, trimmedText, category);
       setIsEditing(false);
     } else {
       handleDelete();
@@ -30,11 +40,13 @@ export function DayItem({ dayInfo, event, onSaveEvent, onDeleteEvent }: DayItemP
   const handleDelete = () => {
     onDeleteEvent(dayInfo.dateKey);
     setEventText("");
+    setCategory(undefined);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEventText(event || "");
+    setEventText(event?.text || "");
+    setCategory(event?.category);
     setIsEditing(false);
   };
 
@@ -49,6 +61,8 @@ export function DayItem({ dayInfo, event, onSaveEvent, onDeleteEvent }: DayItemP
       handleCancel();
     }
   };
+
+  const categoryData = event?.category ? categoryMetadata[event.category] : null;
 
   return (
     <Card
@@ -80,10 +94,11 @@ export function DayItem({ dayInfo, event, onSaveEvent, onDeleteEvent }: DayItemP
         {event && !isEditing && (
           <Badge
             variant="secondary"
-            className="mt-2 text-xs w-fit max-w-full"
+            className={`mt-2 text-xs w-fit max-w-full border ${categoryData?.color || ""}`}
             data-testid={`badge-event-${dayInfo.dayNumber}`}
           >
-            {event}
+            {categoryData && <span className="mr-1">{categoryData.icon}</span>}
+            {event.text}
           </Badge>
         )}
       </div>
@@ -111,7 +126,7 @@ export function DayItem({ dayInfo, event, onSaveEvent, onDeleteEvent }: DayItemP
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 col-span-3 md:col-span-1 md:flex-row md:items-center">
+        <div className="flex flex-col gap-2 col-span-3 md:flex-row md:items-center">
           <Input
             value={eventText}
             onChange={(e) => setEventText(e.target.value)}
@@ -121,6 +136,21 @@ export function DayItem({ dayInfo, event, onSaveEvent, onDeleteEvent }: DayItemP
             className="flex-1"
             data-testid={`input-event-${dayInfo.dayNumber}`}
           />
+          <Select value={category} onValueChange={(val) => setCategory(val as EventCategory)}>
+            <SelectTrigger className="w-full md:w-[180px]" data-testid={`select-category-${dayInfo.dayNumber}`}>
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(categoryMetadata).map(([key, meta]) => (
+                <SelectItem key={key} value={key}>
+                  <span className="flex items-center gap-2">
+                    <span>{meta.icon}</span>
+                    <span>{meta.label}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex gap-2">
             <Button
               size="sm"
