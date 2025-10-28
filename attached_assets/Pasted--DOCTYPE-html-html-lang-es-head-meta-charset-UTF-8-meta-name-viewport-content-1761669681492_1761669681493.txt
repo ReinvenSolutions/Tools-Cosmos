@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Itinerario COSMOS (25 Días)</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <style>
+        /* Configuración de fuente y estilo base */
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Contenedor del calendario en línea */
+        #calendarContainer {
+            /* Eliminamos flex y centrado aquí, ya que se manejará con mx-auto en el HTML para centrar el bloque */
+            padding: 0.5rem;
+            background: linear-gradient(to bottom right, #ffffff, #f8fafc);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Estilos de Flatpickr */
+        .flatpickr-calendar { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .flatpickr-day.selected { background: #4f46e5 !important; border-color: #4f46e5 !important; color: white !important; }
+        .flatpickr-day:hover { background: #eef2ff !important; border-color: #a5b4fc !important; }
+        .flatpickr-calendar.inline { position: relative; top: 0; left: 0; display: block; width: 100%; max-width: 100%; }
+
+        /* Estilos para el timeline vertical */
+        .timeline-container {
+            max-height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+        .timeline-container::-webkit-scrollbar { width: 6px; }
+        .timeline-container::-webkit-scrollbar-thumb { background-color: rgba(79, 70, 229, 0.4); border-radius: 3px; }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        /* Estilo base del item del día */
+        .day-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
+        }
+
+        /* Estilo para Fines de Semana */
+        .day-item.weekend {
+            background: #eff6ff; /* Azul claro para fin de semana */
+            border-left: 4px solid #93c5fd;
+        }
+
+        .day-item:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+
+        .day-number {
+            background: #4f46e5;
+            color: white;
+            font-weight: bold;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.125rem;
+            flex-shrink: 0;
+        }
+
+        .day-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .day-date { font-size: 1.125rem; font-weight: 600; color: #1f2937; }
+        .day-weekday { font-size: 0.875rem; color: #6b7280; text-transform: capitalize; }
+
+        /* Estilos del botón de evento */
+        .day-event-btn {
+            padding: 0.5rem 1rem;
+            background: #eef2ff;
+            color: #4f46e5;
+            border: 1px solid #c7d2fe;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .day-event-btn:hover { background: #c7d2fe; }
+        .day-event-btn.has-event {
+            background: #10b981; /* Esmeralda para evento */
+            color: white;
+            border-color: #059669;
+        }
+        .day-event-btn.has-event:hover { background: #059669; }
+
+        /* Estilos para el editor de eventos inline */
+        .event-editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            grid-column: 3; /* Colocar en la columna del botón */
+            align-items: flex-end;
+        }
+
+        /* Estilo sutil para el resumen */
+        #results {
+            background: #f7f9fc;
+            border: 1px solid #e0e7ff;
+            box-shadow: none;
+            padding: 1.25rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-2 { grid-template-columns: 1fr; }
+            .timeline-container { max-height: 50vh; }
+            .day-item { grid-template-columns: auto 1fr; } /* Simplificar layout en móvil */
+            .day-event-btn {
+                grid-column: span 2; /* Botón a línea completa en móvil */
+                justify-content: center;
+            }
+            .event-editor-container {
+                grid-column: span 2;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-indigo-50 via-white to-indigo-50 min-h-screen">
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Título Principal -->
+        <header class="max-w-2xl mx-auto text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-400">
+                Calculadora COSMOS (25 Días)
+            </h1>
+            <p class="text-lg text-gray-600">
+                Selecciona la fecha de inicio para ver tu itinerario fijo de **25 días / 24 noches**.
+            </p>
+        </header>
+
+        <!-- Grid para Calendario y Timeline -->
+        <div class="grid md:grid-cols-2 gap-8 items-start max-w-6xl mx-auto">
+            
+            <!-- Columna 1: Calendario, Selector y Resumen (Contenido de Configuración) -->
+            <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-2xl">
+                <label class="block text-xl font-semibold text-gray-800 mb-4 text-center" for="calendarContainer">
+                    Selecciona Fecha de Inicio
+                </label>
+                
+                <!-- Casilla para mostrar el rango seleccionado -->
+                <div id="selectedDatesDisplay" class="text-center text-lg font-bold text-indigo-600 mb-6 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-200 shadow-inner">
+                    Cargando...
+                </div>
+                
+                <!-- Contenedor del calendario (CENTRADOS) -->
+                <div id="calendarContainer" class="flatpickr-calendar-placeholder rounded-xl overflow-hidden max-w-md mx-auto">
+                    <!-- Flatpickr renderizará el calendario aquí -->
+                </div>
+            
+                <!-- Inputs ocultos para manejo de fechas -->
+                <input type="hidden" id="startDate" value="">
+                <input type="hidden" id="endDate" value="">
+
+                <!-- Botón para limpiar selección -->
+                <button id="clearSelection" class="mt-4 w-full px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-medium hover:bg-indigo-200 transition" type="button">
+                    Limpiar y Reiniciar Itinerario
+                </button>
+
+                <!-- Bloque de Resumen -->
+                <div id="results" class="rounded-xl shadow-md mt-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">
+                        Resumen del Viaje
+                    </h2>
+            
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Tarjeta de Días -->
+                        <div class="p-3 bg-white rounded-lg shadow-sm border border-indigo-100 text-center">
+                            <p class="text-3xl font-extrabold text-indigo-600" id="daysResult">25</p>
+                            <p class="text-xs font-medium text-gray-600 mt-1">Días Totales</p>
+                        </div>
+
+                        <!-- Tarjeta de Noches -->
+                        <div class="p-3 bg-white rounded-lg shadow-sm border border-indigo-100 text-center">
+                            <p class="text-3xl font-extrabold text-indigo-600" id="nightsResult">24</p>
+                            <p class="text-xs font-medium text-gray-600 mt-1">Noches Totales</p>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje de estado -->
+                    <p id="message" class="text-sm font-medium text-gray-600 mt-4 text-center">
+                        Fechas de hoy preseleccionadas.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Columna 2: Timeline (Itinerario Detallado) -->
+            <div>
+                <!-- Timeline -->
+                <div class="timeline-container bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl">
+                    <div class="sticky top-0 bg-white/95 backdrop-blur-sm z-10 border-b border-gray-100">
+                        <h3 class="text-xl font-semibold text-gray-800 p-6">
+                            Itinerario Detallado
+                        </h3>
+                    </div>
+                    <div id="timeline" class="timeline">
+                        <!-- Los días se agregarán dinámicamente aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Carga de Flatpickr JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script> <!-- Carga de idioma español -->
+
+    <script>
+        // --- Variables Globales y Constantes ---
+        
+        // Estado de eventos por día (persistencia en memoria)
+        let dayEvents = {};
+        const DAYS_IN_TRIP = 25; 
+        const NIGHTS_IN_TRIP = DAYS_IN_TRIP - 1; 
+        
+        // --- Utilidades ---
+        
+        function getFormattedDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // --- Funciones de Interacción ---
+        
+        // Maneja la acción de guardar/eliminar un evento de un día
+        function handleEventAction(dayKey, startDate, endDate, action, inputElement) {
+            if (action === 'save') {
+                const eventText = inputElement.value.trim();
+                if (eventText) {
+                    dayEvents[dayKey] = eventText;
+                } else {
+                    delete dayEvents[dayKey];
+                }
+            } else if (action === 'delete') {
+                delete dayEvents[dayKey];
+            }
+            
+            // Reconstruir el timeline para reflejar el cambio
+            updateTimeline(startDate, endDate);
+        }
+
+        // Función principal que genera el timeline
+        function updateTimeline(startDate, endDate) {
+            const timelineElement = document.getElementById('timeline');
+            timelineElement.innerHTML = ''; // Limpiar timeline existente
+            
+            if (!startDate) return;
+
+            let currentDate = new Date(startDate);
+            
+            for (let dayCount = 1; dayCount <= DAYS_IN_TRIP; dayCount++) {
+                const dayKey = getFormattedDate(currentDate);
+                const dayEvent = dayEvents[dayKey] || '';
+                
+                // Formato de fecha dd/mm/aaaa
+                const formattedDate = currentDate.toLocaleDateString('es', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const weekDay = currentDate.toLocaleDateString('es', { weekday: 'long' });
+                
+                // 0 = Domingo, 6 = Sábado
+                const isWeekend = [0, 6].includes(currentDate.getDay());
+                
+                const dayItem = document.createElement('div');
+                dayItem.className = `day-item ${isWeekend ? 'weekend' : ''}`;
+                
+                // Construcción del Item del Día
+                dayItem.innerHTML = `
+                    <div class="day-number">${dayCount}</div>
+                    <div class="day-info">
+                        <div class="day-date">${formattedDate}</div>
+                        <div class="day-weekday">${weekDay}</div>
+                    </div>
+                    <div id="eventContainer-${dayKey}" class="event-editor-container">
+                        <!-- Botón o Editor se inserta aquí dinámicamente -->
+                    </div>
+                `;
+
+                const eventContainer = dayItem.querySelector(`#eventContainer-${dayKey}`);
+                
+                if (dayEvent) {
+                    // Estado: Evento existente (Mostrar botón de editar y eliminar)
+                    eventContainer.innerHTML = `
+                        <button class="day-event-btn has-event text-left w-full justify-between" 
+                                title="Editar evento: ${dayEvent}" 
+                                data-day-key="${dayKey}"
+                                data-action="edit">
+                            <span class="truncate pr-2">✈️ ${dayEvent}</span>
+                            <span class="font-normal">📝</span>
+                        </button>
+                    `;
+                } else {
+                    // Estado: Sin evento (Mostrar botón de añadir)
+                    eventContainer.innerHTML = `
+                        <button class="day-event-btn w-full justify-center" 
+                                title="Añadir evento para este día"
+                                data-day-key="${dayKey}"
+                                data-action="edit">
+                            ➕ Añadir Evento
+                        </button>
+                    `;
+                }
+                
+                // Añadir el listener al botón de acción
+                eventContainer.querySelector('.day-event-btn')?.addEventListener('click', (e) => {
+                    const button = e.currentTarget;
+                    const dayKeyToEdit = button.getAttribute('data-day-key');
+                    const currentEvent = dayEvents[dayKeyToEdit] || '';
+
+                    // Reemplazar botón con el editor de texto
+                    eventContainer.innerHTML = `
+                        <input type="text" id="eventInput-${dayKeyToEdit}" 
+                                class="w-full p-2 border border-indigo-300 rounded-lg text-sm" 
+                                value="${currentEvent}" 
+                                placeholder="Escribe tu evento..." />
+                        <div class="flex space-x-2 w-full justify-end">
+                            ${currentEvent ? `<button id="deleteBtn-${dayKeyToEdit}" class="text-sm px-3 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition" type="button">🗑️</button>` : ''}
+                            <button id="saveBtn-${dayKeyToEdit}" class="text-sm px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition" type="button">Guardar</button>
+                        </div>
+                    `;
+
+                    const inputElement = document.getElementById(`eventInput-${dayKeyToEdit}`);
+                    const saveBtn = document.getElementById(`saveBtn-${dayKeyToEdit}`);
+                    const deleteBtn = document.getElementById(`deleteBtn-${dayKeyToEdit}`);
+
+                    // Enfocar el input, retrasado para asegurar que el DOM esté listo
+                    setTimeout(() => inputElement.focus(), 0);
+
+                    // Listener para guardar al presionar Enter
+                    inputElement.addEventListener('keypress', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault(); // Evitar envío de formulario
+                            handleEventAction(dayKeyToEdit, startDate, endDate, 'save', inputElement);
+                        }
+                    });
+
+                    // Listener para guardar
+                    saveBtn.addEventListener('click', () => {
+                        handleEventAction(dayKeyToEdit, startDate, endDate, 'save', inputElement);
+                    });
+
+                    // Listener para eliminar
+                    if (deleteBtn) {
+                        deleteBtn.addEventListener('click', () => {
+                            handleEventAction(dayKeyToEdit, startDate, endDate, 'delete', inputElement);
+                        });
+                    }
+
+                    // Listener para cancelar/cerrar (si pierde foco sin guardar)
+                    inputElement.addEventListener('blur', (e) => {
+                         // Solo si el foco se mueve fuera del contenedor de edición completamente
+                        if (!eventContainer.contains(e.relatedTarget)) {
+                            // Si no hay evento y el input está vacío, restaurar
+                            if (!currentEvent && inputElement.value.trim() === '') {
+                                updateTimeline(startDate, endDate);
+                            }
+                        }
+                    }, true); 
+                });
+
+                timelineElement.appendChild(dayItem);
+                
+                // Avanzar al siguiente día
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
+        
+        // --- Inicialización ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const displayElement = document.getElementById('selectedDatesDisplay');
+            const nightsResult = document.getElementById('nightsResult');
+            const daysResult = document.getElementById('daysResult');
+            const messageElement = document.getElementById('message');
+            const clearBtn = document.getElementById('clearSelection');
+            
+            const today = new Date();
+            const todayFormatted = getFormattedDate(today);
+
+            // Cálculo y Visualización de Resultados (Fijo para 25 días)
+            function calculateAndDisplayResults(startDate, endDate, instance) {
+                nightsResult.textContent = NIGHTS_IN_TRIP;
+                daysResult.textContent = DAYS_IN_TRIP;
+
+                // Formato de fechas para el display (solo fechas dd/mm/aaaa separadas por -)
+                const start = instance.formatDate(startDate, "d/m/Y");
+                const end = instance.formatDate(endDate, "d/m/Y");
+                displayElement.textContent = `${start} - ${end}`;
+                
+                messageElement.textContent = `Itinerario de ${DAYS_IN_TRIP} días (24 noches) establecido.`;
+                messageElement.className = 'mt-4 text-sm font-medium text-indigo-700 text-center';
+
+                // Guardar en inputs ocultos
+                startDateInput.value = getFormattedDate(startDate);
+                endDateInput.value = getFormattedDate(endDate);
+
+                // Generar el timeline
+                updateTimeline(startDate, endDate);
+            }
+            
+            // Limpia selección y estado
+            clearBtn.addEventListener('click', () => {
+                fp.clear(); // Limpiar la selección en el calendario
+                startDateInput.value = '';
+                endDateInput.value = '';
+                displayElement.textContent = 'Selecciona una fecha de inicio'; // Modificado
+                nightsResult.textContent = '0';
+                daysResult.textContent = '0';
+                messageElement.textContent = 'Selecciona la fecha de inicio de tu viaje';
+                messageElement.className = 'mt-4 text-sm font-medium text-gray-600 text-center';
+                document.getElementById('timeline').innerHTML = '';
+                dayEvents = {}; // Limpiar eventos
+            });
+
+
+            // Inicializar Flatpickr
+            const defaultEndDate = new Date(today);
+            defaultEndDate.setDate(today.getDate() + NIGHTS_IN_TRIP); 
+
+            const fp = flatpickr("#calendarContainer", {
+                mode: "single", 
+                inline: true,
+                minDate: todayFormatted,
+                dateFormat: "Y-m-d",
+                locale: "es",
+                showMonths: 1,
+                
+                // Establecer la fecha de hoy como predeterminada
+                defaultDate: todayFormatted,
+
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 1) {
+                        const startDate = selectedDates[0];
+                        const endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + NIGHTS_IN_TRIP);
+                        
+                        calculateAndDisplayResults(startDate, endDate, instance);
+                    } else {
+                        // Si se limpia la selección
+                        clearBtn.click();
+                    }
+                }
+            });
+
+            // Forzar el cálculo inicial con la fecha predeterminada (Hoy)
+            calculateAndDisplayResults(today, defaultEndDate, fp);
+        });
+    </script>
+</body>
+</html>
