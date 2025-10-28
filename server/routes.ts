@@ -17,7 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const todayISO = today.toISOString().split("T")[0];
         const defaultItinerary = {
           startDate: todayISO,
-          events: {},
+          days: {},
         };
         return res.json(defaultItinerary);
       }

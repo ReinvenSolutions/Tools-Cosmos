@@ -30,13 +30,7 @@ export default function Home() {
   };
 
   const handleClearItinerary = () => {
-    if (
-      window.confirm(
-        "¿Estás seguro de que deseas limpiar el itinerario? Se perderán todos los eventos guardados."
-      )
-    ) {
-      clearItinerary();
-    }
+    clearItinerary();
   };
 
   if (isLoading) {

@@ -12,24 +12,59 @@ export function useItinerary() {
     refetchOnWindowFocus: false,
   });
 
-  // Save itinerary mutation
+  // Save itinerary mutation with optimistic updates
   const saveMutation = useMutation({
     mutationFn: async (itinerary: Itinerary) => {
       const response = await apiRequest("POST", ITINERARY_QUERY_KEY, itinerary);
       return await response.json();
     },
-    onSuccess: () => {
+    onMutate: async (newItinerary) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: [ITINERARY_QUERY_KEY] });
+
+      // Snapshot the previous value
+      const previousItinerary = queryClient.getQueryData([ITINERARY_QUERY_KEY]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData([ITINERARY_QUERY_KEY], newItinerary);
+
+      // Return a context object with the snapshotted value
+      return { previousItinerary };
+    },
+    onError: (err, newItinerary, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData([ITINERARY_QUERY_KEY], context?.previousItinerary);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
       queryClient.invalidateQueries({ queryKey: [ITINERARY_QUERY_KEY] });
     },
   });
 
-  // Delete itinerary mutation
+  // Delete itinerary mutation with optimistic updates
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("DELETE", ITINERARY_QUERY_KEY);
       return await response.json();
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: [ITINERARY_QUERY_KEY] });
+      const previousItinerary = queryClient.getQueryData([ITINERARY_QUERY_KEY]);
+
+      // Optimistically clear the itinerary
+      const today = new Date();
+      const todayISO = today.toISOString().split("T")[0];
+      queryClient.setQueryData([ITINERARY_QUERY_KEY], {
+        startDate: todayISO,
+        days: {},
+      });
+
+      return { previousItinerary };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData([ITINERARY_QUERY_KEY], context?.previousItinerary);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [ITINERARY_QUERY_KEY] });
     },
   });
@@ -95,7 +130,7 @@ export function useItinerary() {
     days: currentState.days,
     isLoading,
     error,
-    isSaving: saveMutation.isPending,
+    isSaving: saveMutation.isPending || deleteMutation.isPending,
     setStartDate,
     setEvent,
     deleteEvent,

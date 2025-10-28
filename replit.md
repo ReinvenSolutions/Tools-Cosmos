@@ -146,7 +146,7 @@ Itinerary {
 **Latest Changes:**
 - ✅ Removed notes and budget features (simplified to events only)
 - ✅ Event tags now all GREEN regardless of category for maximum visibility
-- ✅ Event tags repositioned INLINE with dates (not below)
+- ✅ Event tags repositioned INLINE with dates (appearing before the date)
 - ✅ Significantly improved dark mode contrast:
   - Foreground text: 96% lightness (much brighter)
   - Muted text: 80% lightness (much more readable)
@@ -154,12 +154,25 @@ Itinerary {
   - Card backgrounds: 14% lightness (better separation)
 - ✅ Event tags use bright green (bg-green-600 dark:bg-green-500) with white text
 - ✅ Larger, more visible event badges with better shadow and padding
+- ✅ Flatpickr calendar fully styled for dark mode:
+  - All text elements (days, months, year) are white/light colored
+  - Month dropdown selector has proper dark background and light text
+  - Navigation arrows are visible and properly styled
+  - Selected dates use primary color with high contrast
+- ✅ Title updated to "Calculadora de Días Cosmos" with "(25 Días)" on separate line
+- ✅ Clear itinerary button now works instantly without confirmation dialog
+- ✅ **Optimistic updates implemented**: Event saving is now INSTANTANEOUS
+  - UI updates immediately when saving/editing/deleting events
+  - No waiting for server response
+  - Automatic rollback on errors
 
 **Design Decisions:**
 - All event tags are green to maintain visual consistency
-- Tags appear next to the date for better visual hierarchy
-- Dark mode now has excellent text contrast for readability
+- Tags appear BEFORE the date for better visual hierarchy
+- Dark mode now has excellent text contrast for readability across all components
 - Removed unnecessary complexity (notes/budget) per user request
+- Instant clear action improves user experience by reducing friction
+- Optimistic updates for instantaneous UI feedback (saves occur in background)
 
 ### October 28, 2025 - MVP Completed
 
