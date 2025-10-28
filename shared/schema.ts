@@ -12,11 +12,9 @@ export interface EventWithCategory {
   category?: EventCategory;
 }
 
-// Day details with notes and budget
+// Day details - solo eventos, sin notas ni presupuesto
 export interface DayDetails {
   event?: EventWithCategory;
-  notes?: string;
-  budget?: number;
 }
 
 // Drizzle table definition for itineraries
@@ -43,8 +41,6 @@ export const eventWithCategorySchema = z.object({
 
 export const dayDetailsSchema = z.object({
   event: eventWithCategorySchema.optional(),
-  notes: z.string().optional(),
-  budget: z.number().nonnegative().optional(),
 });
 
 export const itinerarySchema = z.object({
@@ -61,31 +57,31 @@ export type SelectItinerary = typeof itineraries.$inferSelect;
 export const DAYS_IN_TRIP = 25;
 export const NIGHTS_IN_TRIP = 24;
 
-// Category metadata for UI - Colores vibrantes con excelente contraste
+// Category metadata - TODAS las etiquetas ahora son VERDES
 export const categoryMetadata: Record<EventCategory, { icon: string; color: string; label: string }> = {
   transport: { 
     icon: "🚗", 
-    color: "bg-blue-500 dark:bg-blue-600 text-white border-blue-600 dark:border-blue-500", 
+    color: "bg-green-600 dark:bg-green-500 text-white border-green-700 dark:border-green-400", 
     label: "Transporte" 
   },
   accommodation: { 
     icon: "🏨", 
-    color: "bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-500", 
+    color: "bg-green-600 dark:bg-green-500 text-white border-green-700 dark:border-green-400", 
     label: "Alojamiento" 
   },
   activity: { 
     icon: "🎯", 
-    color: "bg-green-500 dark:bg-green-600 text-white border-green-600 dark:border-green-500", 
+    color: "bg-green-600 dark:bg-green-500 text-white border-green-700 dark:border-green-400", 
     label: "Actividad" 
   },
   food: { 
     icon: "🍽️", 
-    color: "bg-orange-500 dark:bg-orange-600 text-white border-orange-600 dark:border-orange-500", 
+    color: "bg-green-600 dark:bg-green-500 text-white border-green-700 dark:border-green-400", 
     label: "Comida" 
   },
   other: { 
     icon: "📋", 
-    color: "bg-slate-600 dark:bg-slate-500 text-white border-slate-700 dark:border-slate-400", 
+    color: "bg-green-600 dark:bg-green-500 text-white border-green-700 dark:border-green-400", 
     label: "Otro" 
   },
 };

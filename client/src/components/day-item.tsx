@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -11,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Edit, Save, X, StickyNote, DollarSign } from "lucide-react";
+import { Plus, Edit, Save, X } from "lucide-react";
 import type { DayInfo } from "@/lib/itinerary-utils";
 import type { EventCategory, DayDetails } from "@shared/schema";
 import { categoryMetadata } from "@shared/schema";
@@ -20,17 +19,13 @@ interface DayItemProps {
   dayInfo: DayInfo;
   dayDetails: DayDetails | undefined;
   onSaveEvent: (dateKey: string, eventText: string, category?: EventCategory) => void;
-  onUpdateDetails: (dateKey: string, details: Partial<DayDetails>) => void;
   onDeleteEvent: (dateKey: string) => void;
 }
 
-export function DayItem({ dayInfo, dayDetails, onSaveEvent, onUpdateDetails, onDeleteEvent }: DayItemProps) {
+export function DayItem({ dayInfo, dayDetails, onSaveEvent, onDeleteEvent }: DayItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
   const [eventText, setEventText] = useState(dayDetails?.event?.text || "");
   const [category, setCategory] = useState<EventCategory | undefined>(dayDetails?.event?.category);
-  const [notes, setNotes] = useState(dayDetails?.notes || "");
-  const [budget, setBudget] = useState(dayDetails?.budget?.toString() || "");
 
   const handleSave = () => {
     const trimmedText = eventText.trim();
@@ -40,15 +35,6 @@ export function DayItem({ dayInfo, dayDetails, onSaveEvent, onUpdateDetails, onD
     } else {
       handleDelete();
     }
-  };
-
-  const handleSaveDetails = () => {
-    const budgetNum = budget ? parseFloat(budget) : undefined;
-    onUpdateDetails(dayInfo.dateKey, {
-      notes: notes.trim() || undefined,
-      budget: budgetNum,
-    });
-    setShowDetails(false);
   };
 
   const handleDelete = () => {
@@ -62,12 +48,6 @@ export function DayItem({ dayInfo, dayDetails, onSaveEvent, onUpdateDetails, onD
     setEventText(dayDetails?.event?.text || "");
     setCategory(dayDetails?.event?.category);
     setIsEditing(false);
-  };
-
-  const handleCancelDetails = () => {
-    setNotes(dayDetails?.notes || "");
-    setBudget(dayDetails?.budget?.toString() || "");
-    setShowDetails(false);
   };
 
   const handleEdit = () => {
@@ -100,48 +80,33 @@ export function DayItem({ dayInfo, dayDetails, onSaveEvent, onUpdateDetails, onD
         </div>
 
         <div className="flex flex-col justify-center min-w-0">
-          <div
-            className="text-lg font-semibold text-foreground truncate"
-            data-testid={`text-day-date-${dayInfo.dayNumber}`}
-          >
-            {dayInfo.formattedDate}
-          </div>
-          <div
-            className="text-sm text-muted-foreground capitalize"
-            data-testid={`text-day-weekday-${dayInfo.dayNumber}`}
-          >
-            {dayInfo.weekday}
-          </div>
-          {dayDetails?.event && !isEditing && (
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            {dayDetails?.event && !isEditing && (
               <Badge
-                className={`text-sm font-medium px-3 py-1 shadow-sm ${categoryData?.color || "bg-slate-600 dark:bg-slate-500 text-white border-slate-700 dark:border-slate-400"}`}
+                className="bg-green-600 dark:bg-green-500 text-white border-green-700 dark:border-green-400 text-sm font-medium px-3 py-1 shadow-sm"
                 data-testid={`badge-event-${dayInfo.dayNumber}`}
               >
                 {categoryData && <span className="mr-1.5 text-base">{categoryData.icon}</span>}
                 {dayDetails.event.text}
               </Badge>
-              {dayDetails?.budget && (
-                <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                  💰 ${dayDetails.budget.toFixed(2)}
-                </span>
-              )}
+            )}
+            <div
+              className="text-lg font-semibold text-foreground"
+              data-testid={`text-day-date-${dayInfo.dayNumber}`}
+            >
+              {dayInfo.formattedDate}
             </div>
-          )}
+          </div>
+          <div
+            className="text-sm text-muted-foreground capitalize mt-0.5"
+            data-testid={`text-day-weekday-${dayInfo.dayNumber}`}
+          >
+            {dayInfo.weekday}
+          </div>
         </div>
 
         {!isEditing ? (
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowDetails(!showDetails)}
-              className="rounded-full hover-elevate active-elevate-2"
-              data-testid={`button-details-${dayInfo.dayNumber}`}
-              title="Notas y presupuesto"
-            >
-              {showDetails ? <X className="h-3 w-3" /> : <StickyNote className="h-3 w-3" />}
-            </Button>
             <Button
               variant={dayDetails?.event ? "default" : "outline"}
               size="sm"
@@ -223,60 +188,6 @@ export function DayItem({ dayInfo, dayDetails, onSaveEvent, onUpdateDetails, onD
           </div>
         )}
       </div>
-
-      {showDetails && !isEditing && (
-        <div className="mt-4 pt-4 border-t border-border space-y-3">
-          <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">
-              Notas del día
-            </label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Agrega notas adicionales..."
-              className="resize-none"
-              rows={3}
-              data-testid={`textarea-notes-${dayInfo.dayNumber}`}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">
-              Presupuesto del día ($)
-            </label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              placeholder="0.00"
-              data-testid={`input-budget-${dayInfo.dayNumber}`}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={handleSaveDetails}
-              variant="default"
-              className="hover-elevate active-elevate-2"
-              data-testid={`button-save-details-${dayInfo.dayNumber}`}
-            >
-              <Save className="h-3 w-3 mr-1" />
-              Guardar
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleCancelDetails}
-              variant="outline"
-              className="hover-elevate active-elevate-2"
-              data-testid={`button-cancel-details-${dayInfo.dayNumber}`}
-            >
-              <X className="h-3 w-3 mr-1" />
-              Cancelar
-            </Button>
-          </div>
-        </div>
-      )}
     </Card>
   );
 }

@@ -75,31 +75,13 @@ export function useItinerary() {
     saveMutation.mutate(newItinerary);
   };
 
-  const setDayDetails = (dateKey: string, details: Partial<DayDetails>) => {
-    const existingDay = currentState.days[dateKey] || {};
-    const newItinerary: Itinerary = {
-      startDate: currentState.startDate || "",
-      days: {
-        ...currentState.days,
-        [dateKey]: {
-          ...existingDay,
-          ...details,
-        },
-      },
-    };
-    saveMutation.mutate(newItinerary);
-  };
-
   const deleteEvent = (dateKey: string) => {
-    const existingDay = currentState.days[dateKey] || {};
-    const { event, ...rest } = existingDay;
+    const newDays = { ...currentState.days };
+    delete newDays[dateKey];
     
     const newItinerary: Itinerary = {
       startDate: currentState.startDate || "",
-      days: {
-        ...currentState.days,
-        [dateKey]: rest,
-      },
+      days: newDays,
     };
     saveMutation.mutate(newItinerary);
   };
@@ -108,21 +90,14 @@ export function useItinerary() {
     deleteMutation.mutate();
   };
 
-  // Calculate total budget
-  const totalBudget = Object.values(currentState.days || {}).reduce((sum, day) => {
-    return sum + (day?.budget || 0);
-  }, 0);
-
   return {
     startDate: currentState.startDate,
     days: currentState.days,
-    totalBudget,
     isLoading,
     error,
     isSaving: saveMutation.isPending,
     setStartDate,
     setEvent,
-    setDayDetails,
     deleteEvent,
     clearItinerary,
   };

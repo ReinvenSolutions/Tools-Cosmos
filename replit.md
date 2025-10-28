@@ -141,6 +141,26 @@ Itinerary {
 
 ## Recent Changes
 
+### October 28, 2025 - UI Improvements & Simplification
+
+**Latest Changes:**
+- ✅ Removed notes and budget features (simplified to events only)
+- ✅ Event tags now all GREEN regardless of category for maximum visibility
+- ✅ Event tags repositioned INLINE with dates (not below)
+- ✅ Significantly improved dark mode contrast:
+  - Foreground text: 96% lightness (much brighter)
+  - Muted text: 80% lightness (much more readable)
+  - Background: 10% lightness (darker for better contrast)
+  - Card backgrounds: 14% lightness (better separation)
+- ✅ Event tags use bright green (bg-green-600 dark:bg-green-500) with white text
+- ✅ Larger, more visible event badges with better shadow and padding
+
+**Design Decisions:**
+- All event tags are green to maintain visual consistency
+- Tags appear next to the date for better visual hierarchy
+- Dark mode now has excellent text contrast for readability
+- Removed unnecessary complexity (notes/budget) per user request
+
 ### October 28, 2025 - MVP Completed
 
 **Features Implemented:**
@@ -153,20 +173,16 @@ Itinerary {
 - ✅ Responsive design (2-column desktop, stacked mobile)
 - ✅ Express backend API with full CRUD endpoints
 - ✅ React Query integration for data persistence
+- ✅ PostgreSQL database with Drizzle ORM
 - ✅ Loading states with skeleton loaders
 - ✅ Saving indicators during mutations
 - ✅ Error handling with toast notifications
 - ✅ Custom Flatpickr styles for both themes
 - ✅ Test IDs on all interactive elements
 
-**Testing:**
-- Architect review: Passed
-- End-to-end automated test: All scenarios passed
-- API verification: GET/POST/DELETE endpoints working correctly
-
 **Technical Highlights:**
 - React Query with global queryFn configuration
-- In-memory storage (MemStorage) for development
+- PostgreSQL storage with atomic upserts
 - Zod validation on all API endpoints
 - Type-safe schema sharing between frontend/backend
 - Hover states and animations following design guidelines

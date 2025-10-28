@@ -14,12 +14,10 @@ export default function Home() {
   const { 
     startDate, 
     days, 
-    totalBudget,
     isLoading, 
     isSaving,
     setStartDate, 
     setEvent, 
-    setDayDetails,
     deleteEvent, 
     clearItinerary 
   } = useItinerary();
@@ -119,7 +117,7 @@ export default function Home() {
                 Limpiar y Reiniciar Itinerario
               </Button>
 
-              <SummaryPanel hasStartDate={!!startDateObj} totalBudget={totalBudget} />
+              <SummaryPanel hasStartDate={!!startDateObj} />
             </Card>
           </div>
 
@@ -129,7 +127,6 @@ export default function Home() {
                 days={itineraryDays}
                 dayDetails={days}
                 onSaveEvent={setEvent}
-                onUpdateDetails={setDayDetails}
                 onDeleteEvent={deleteEvent}
               />
             ) : (

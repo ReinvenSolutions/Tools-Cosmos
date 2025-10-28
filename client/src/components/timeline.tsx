@@ -6,11 +6,10 @@ interface TimelineProps {
   days: DayInfo[];
   dayDetails: Record<string, DayDetails>;
   onSaveEvent: (dateKey: string, eventText: string, category?: EventCategory) => void;
-  onUpdateDetails: (dateKey: string, details: Partial<DayDetails>) => void;
   onDeleteEvent: (dateKey: string) => void;
 }
 
-export function Timeline({ days, dayDetails, onSaveEvent, onUpdateDetails, onDeleteEvent }: TimelineProps) {
+export function Timeline({ days, dayDetails, onSaveEvent, onDeleteEvent }: TimelineProps) {
   return (
     <div className="bg-card/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
       <div className="sticky top-0 bg-card/95 backdrop-blur-sm z-10 border-b border-border">
@@ -28,7 +27,6 @@ export function Timeline({ days, dayDetails, onSaveEvent, onUpdateDetails, onDel
             dayInfo={dayInfo}
             dayDetails={dayDetails[dayInfo.dateKey]}
             onSaveEvent={onSaveEvent}
-            onUpdateDetails={onUpdateDetails}
             onDeleteEvent={onDeleteEvent}
           />
         ))}
