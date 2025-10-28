@@ -61,11 +61,31 @@ export type SelectItinerary = typeof itineraries.$inferSelect;
 export const DAYS_IN_TRIP = 25;
 export const NIGHTS_IN_TRIP = 24;
 
-// Category metadata for UI
+// Category metadata for UI - Colores vibrantes con excelente contraste
 export const categoryMetadata: Record<EventCategory, { icon: string; color: string; label: string }> = {
-  transport: { icon: "🚗", color: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700", label: "Transporte" },
-  accommodation: { icon: "🏨", color: "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-300 dark:border-purple-700", label: "Alojamiento" },
-  activity: { icon: "🎯", color: "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700", label: "Actividad" },
-  food: { icon: "🍽️", color: "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-700", label: "Comida" },
-  other: { icon: "📋", color: "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-700", label: "Otro" },
+  transport: { 
+    icon: "🚗", 
+    color: "bg-blue-500 dark:bg-blue-600 text-white border-blue-600 dark:border-blue-500", 
+    label: "Transporte" 
+  },
+  accommodation: { 
+    icon: "🏨", 
+    color: "bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-500", 
+    label: "Alojamiento" 
+  },
+  activity: { 
+    icon: "🎯", 
+    color: "bg-green-500 dark:bg-green-600 text-white border-green-600 dark:border-green-500", 
+    label: "Actividad" 
+  },
+  food: { 
+    icon: "🍽️", 
+    color: "bg-orange-500 dark:bg-orange-600 text-white border-orange-600 dark:border-orange-500", 
+    label: "Comida" 
+  },
+  other: { 
+    icon: "📋", 
+    color: "bg-slate-600 dark:bg-slate-500 text-white border-slate-700 dark:border-slate-400", 
+    label: "Otro" 
+  },
 };

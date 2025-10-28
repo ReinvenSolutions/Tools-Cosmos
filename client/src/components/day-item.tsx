@@ -113,18 +113,19 @@ export function DayItem({ dayInfo, dayDetails, onSaveEvent, onUpdateDetails, onD
             {dayInfo.weekday}
           </div>
           {dayDetails?.event && !isEditing && (
-            <Badge
-              variant="secondary"
-              className={`mt-2 text-xs w-fit max-w-full border ${categoryData?.color || ""}`}
-              data-testid={`badge-event-${dayInfo.dayNumber}`}
-            >
-              {categoryData && <span className="mr-1">{categoryData.icon}</span>}
-              {dayDetails.event.text}
-            </Badge>
-          )}
-          {dayDetails?.budget && !isEditing && (
-            <div className="text-xs text-muted-foreground mt-1">
-              💰 ${dayDetails.budget.toFixed(2)}
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              <Badge
+                className={`text-sm font-medium px-3 py-1 shadow-sm ${categoryData?.color || "bg-slate-600 dark:bg-slate-500 text-white border-slate-700 dark:border-slate-400"}`}
+                data-testid={`badge-event-${dayInfo.dayNumber}`}
+              >
+                {categoryData && <span className="mr-1.5 text-base">{categoryData.icon}</span>}
+                {dayDetails.event.text}
+              </Badge>
+              {dayDetails?.budget && (
+                <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                  💰 ${dayDetails.budget.toFixed(2)}
+                </span>
+              )}
             </div>
           )}
         </div>
