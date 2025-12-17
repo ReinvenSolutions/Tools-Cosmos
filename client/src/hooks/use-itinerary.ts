@@ -31,13 +31,13 @@ export function useItinerary() {
       // Return a context object with the snapshotted value
       return { previousItinerary };
     },
+    onSuccess: (savedItinerary) => {
+      // Update the cache with the server response
+      queryClient.setQueryData([ITINERARY_QUERY_KEY], savedItinerary);
+    },
     onError: (err, newItinerary, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData([ITINERARY_QUERY_KEY], context?.previousItinerary);
-    },
-    onSettled: () => {
-      // Always refetch after error or success to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: [ITINERARY_QUERY_KEY] });
     },
   });
 
@@ -59,11 +59,15 @@ export function useItinerary() {
 
       return { previousItinerary };
     },
+    onSuccess: () => {
+      // Set empty itinerary on success
+      queryClient.setQueryData([ITINERARY_QUERY_KEY], {
+        startDate: "",
+        days: {},
+      });
+    },
     onError: (err, variables, context) => {
       queryClient.setQueryData([ITINERARY_QUERY_KEY], context?.previousItinerary);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [ITINERARY_QUERY_KEY] });
     },
   });
 

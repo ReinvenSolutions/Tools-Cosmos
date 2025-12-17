@@ -6,6 +6,11 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Trust proxy - needed for secure cookies behind Railway/reverse proxy
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 declare module 'http' {
   interface IncomingMessage {
     rawBody: unknown
@@ -21,6 +26,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+    sameSite: 'lax',
   }
 }));
 
