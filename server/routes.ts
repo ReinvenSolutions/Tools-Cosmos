@@ -12,11 +12,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const itinerary = await storage.getItinerary(sessionId);
       
       if (!itinerary) {
-        // Return default itinerary with today's date
-        const today = new Date();
-        const todayISO = today.toISOString().split("T")[0];
+        // Return empty itinerary (no default date)
         const defaultItinerary = {
-          startDate: todayISO,
+          startDate: "",
           days: {},
         };
         return res.json(defaultItinerary);

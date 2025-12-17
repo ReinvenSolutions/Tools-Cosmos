@@ -51,11 +51,9 @@ export function useItinerary() {
       await queryClient.cancelQueries({ queryKey: [ITINERARY_QUERY_KEY] });
       const previousItinerary = queryClient.getQueryData([ITINERARY_QUERY_KEY]);
 
-      // Optimistically clear the itinerary
-      const today = new Date();
-      const todayISO = today.toISOString().split("T")[0];
+      // Optimistically clear the itinerary completely
       queryClient.setQueryData([ITINERARY_QUERY_KEY], {
-        startDate: todayISO,
+        startDate: "",
         days: {},
       });
 
@@ -69,16 +67,17 @@ export function useItinerary() {
     },
   });
 
-  // Get current state with fallback to today's date
+  // Get current state without default date
   const getCurrentState = (): { startDate: string | null; days: Record<string, DayDetails> } => {
     if (data) {
-      return { startDate: data.startDate, days: data.days || {} };
+      return { 
+        startDate: data.startDate || null, 
+        days: data.days || {} 
+      };
     }
     
-    // Default to today's date when no data
-    const today = new Date();
-    const todayISO = today.toISOString().split("T")[0];
-    return { startDate: todayISO, days: {} };
+    // No default date when no data
+    return { startDate: null, days: {} };
   };
 
   const currentState = getCurrentState();
