@@ -71,7 +71,7 @@ export function useItinerary() {
   const getCurrentState = (): { startDate: string | null; days: Record<string, DayDetails> } => {
     if (data) {
       return { 
-        startDate: data.startDate || null, 
+        startDate: data.startDate && data.startDate !== "" ? data.startDate : null, 
         days: data.days || {} 
       };
     }
