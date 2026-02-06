@@ -10,6 +10,16 @@ import { eq } from "drizzle-orm";
 import { isAuthenticated } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint - lightweight endpoint for Railway monitoring
+  // This doesn't require authentication and returns immediately
+  app.get("/api/health", (_req, res) => {
+    res.status(200).json({ 
+      status: "ok", 
+      timestamp: Date.now(),
+      uptime: process.uptime()
+    });
+  });
+
   // Auth routes
   
   // Register new user
@@ -107,11 +117,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Protected routes - require authentication
-  // Get itinerary for current session
+  // Get itinerary for current user
   app.get("/api/itinerary", isAuthenticated, async (req, res) => {
     try {
-      const sessionId = req.sessionID || "default";
-      const itinerary = await storage.getItinerary(sessionId);
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
+      const userId = req.user.id.toString();
+      const itinerary = await storage.getItinerary(userId);
       
       if (!itinerary) {
         // Return empty itinerary (no default date)
@@ -124,38 +138,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(itinerary);
     } catch (error) {
+      console.error("Error fetching itinerary:", error);
       res.status(500).json({ error: "Failed to fetch itinerary" });
     }
   });
 
-  // Save itinerary
+  // Save itinerary for current user
   app.post("/api/itinerary", isAuthenticated, async (req, res) => {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
       const validated = itinerarySchema.parse(req.body);
-      const sessionId = req.sessionID || "default";
+      const userId = req.user.id.toString();
       
-      const saved = await storage.saveItinerary(sessionId, validated);
+      const saved = await storage.saveItinerary(userId, validated);
       res.json(saved);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Invalid itinerary data", details: error.errors });
       }
+      console.error("Error saving itinerary:", error);
       res.status(500).json({ error: "Failed to save itinerary" });
     }
   });
 
-  // Delete itinerary
+  // Delete itinerary for current user (deletes from database)
   app.delete("/api/itinerary", isAuthenticated, async (req, res) => {
     try {
-      const sessionId = req.sessionID || "default";
-      const deleted = await storage.deleteItinerary(sessionId);
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
+      const userId = req.user.id.toString();
+      const deleted = await storage.deleteItinerary(userId);
       
       if (!deleted) {
         return res.status(404).json({ error: "No itinerary to delete" });
       }
       
-      res.json({ success: true });
+      res.json({ success: true, message: "Itinerario eliminado de la base de datos" });
     } catch (error) {
+      console.error("Error deleting itinerary:", error);
       res.status(500).json({ error: "Failed to delete itinerary" });
     }
   });

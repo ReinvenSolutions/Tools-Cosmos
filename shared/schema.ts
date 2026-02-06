@@ -50,7 +50,7 @@ export interface DayDetails {
 // Drizzle table definition for itineraries
 export const itineraries = pgTable("itineraries", {
   id: serial("id").primaryKey(),
-  sessionId: varchar("session_id", { length: 255 }).notNull().unique(),
+  userId: serial("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   startDate: varchar("start_date", { length: 10 }).notNull(), // YYYY-MM-DD
   days: json("days").$type<Record<string, DayDetails>>().notNull().default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),

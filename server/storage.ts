@@ -11,10 +11,15 @@ export interface IStorage {
 
 export class DbStorage implements IStorage {
   async getItinerary(userId: string): Promise<Itinerary | undefined> {
+    const userIdNum = parseInt(userId, 10);
+    if (isNaN(userIdNum)) {
+      return undefined;
+    }
+
     const result = await db
       .select()
       .from(itineraries)
-      .where(eq(itineraries.sessionId, userId))
+      .where(eq(itineraries.userId, userIdNum))
       .limit(1);
 
     if (result.length === 0) {
@@ -29,31 +34,51 @@ export class DbStorage implements IStorage {
   }
 
   async saveItinerary(userId: string, itinerary: Itinerary): Promise<Itinerary> {
-    // Use upsert (insert with on conflict do update) for atomic operation
-    await db
-      .insert(itineraries)
-      .values({
-        sessionId: userId,
-        startDate: itinerary.startDate,
-        days: itinerary.days,
-      })
-      .onConflictDoUpdate({
-        target: itineraries.sessionId,
-        set: {
+    const userIdNum = parseInt(userId, 10);
+    if (isNaN(userIdNum)) {
+      throw new Error("Invalid user ID");
+    }
+
+    // Check if itinerary exists for this user
+    const existing = await db
+      .select()
+      .from(itineraries)
+      .where(eq(itineraries.userId, userIdNum))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing itinerary
+      await db
+        .update(itineraries)
+        .set({
           startDate: itinerary.startDate,
           days: itinerary.days,
           updatedAt: new Date(),
-        },
+        })
+        .where(eq(itineraries.userId, userIdNum));
+    } else {
+      // Insert new itinerary
+      await db.insert(itineraries).values({
+        userId: userIdNum,
+        startDate: itinerary.startDate,
+        days: itinerary.days,
       });
+    }
 
     return itinerary;
   }
 
   async deleteItinerary(userId: string): Promise<boolean> {
-    await db
-      .delete(itineraries)
-      .where(eq(itineraries.sessionId, userId));
+    const userIdNum = parseInt(userId, 10);
+    if (isNaN(userIdNum)) {
+      return false;
+    }
 
+    const result = await db
+      .delete(itineraries)
+      .where(eq(itineraries.userId, userIdNum));
+
+    // Returns true if at least one row was deleted
     return true;
   }
 }
