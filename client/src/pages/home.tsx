@@ -6,7 +6,6 @@ import { SummaryPanel } from "@/components/summary-panel";
 import { Timeline } from "@/components/timeline";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RotateCcw, Loader2 } from "lucide-react";
 
@@ -36,9 +35,6 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-primary/5">
-        <div className="fixed top-4 right-4 z-50">
-          <ThemeToggle />
-        </div>
         <main className="max-w-7xl mx-auto px-4 py-8">
           <header className="max-w-2xl mx-auto text-center mb-12">
             <Skeleton className="h-14 w-3/4 mx-auto mb-4" />
@@ -59,10 +55,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-primary/5">
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
-
       {isSaving && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" />

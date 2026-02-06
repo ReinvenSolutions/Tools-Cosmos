@@ -19,11 +19,20 @@ const ThemeProviderContext = createContext<ThemeProviderState | undefined>(
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light",
+  defaultTheme = "dark",
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem("theme") as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Migración: Si el usuario tiene "light" guardado, cambiarlo a "dark"
+    const savedTheme = localStorage.getItem("theme") as Theme;
+    
+    // Siempre usar dark mode por defecto
+    if (!savedTheme || savedTheme === "light") {
+      localStorage.setItem("theme", "dark");
+      return "dark";
+    }
+    
+    return savedTheme;
+  });
 
   useEffect(() => {
     const root = document.documentElement;

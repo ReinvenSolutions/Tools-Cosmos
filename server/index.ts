@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupAuth } from "./auth";
 
 const app = express();
 
@@ -21,11 +22,11 @@ declare module 'http' {
 app.use(session({
   secret: process.env.SESSION_SECRET || 'contador-dias-secret-key-change-in-production',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
     sameSite: 'lax',
   }
 }));
@@ -36,6 +37,9 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+// Setup authentication
+setupAuth(app);
 
 app.use((req, res, next) => {
   const start = Date.now();

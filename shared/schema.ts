@@ -1,6 +1,36 @@
 import { pgTable, varchar, text, json, timestamp, serial } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Users table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Zod schemas for users
+export const insertUserSchema = createInsertSchema(users, {
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "La contraseña es requerida"),
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type SelectUser = typeof users.$inferSelect;
+export type User = Omit<SelectUser, "password">;
 
 // Event categories
 export const eventCategories = ["transport", "accommodation", "activity", "food", "other"] as const;
