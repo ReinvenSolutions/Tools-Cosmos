@@ -8,6 +8,7 @@ import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { isAuthenticated } from "./auth";
+import { runMigration } from "./migrate-endpoint";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint - lightweight endpoint for Railway monitoring
@@ -18,6 +19,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       timestamp: Date.now(),
       uptime: process.uptime()
     });
+  });
+
+  // TEMPORARY: Migration endpoint - Remove after running once
+  app.get("/api/migrate", async (_req, res) => {
+    try {
+      const result = await runMigration();
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // Auth routes
